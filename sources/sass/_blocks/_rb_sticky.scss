@@ -8,8 +8,8 @@ $stickyJSCFG: (
 	watchCSS: false,
 	container: 'positionedParent', // false || 'parent' || 'positionedParent' || '.selector'
 	disabled: false,
-	topOffset: false, //false are number: you can also use css top
-	bottomOffset: false, //false are number: you can also use css bottom
+	topOffset: false, //false or number: you can also use css top (if static positioned)
+	bottomOffset: false, //false or number: you can also use css bottom (if static positioned)
 );
 
 .rb-sticky {
@@ -47,7 +47,6 @@ $stickyJSCFG: (
 	&.is-bottom-15 {
 		top: auto;
 		bottom: 15px;
-		margin-bottom: 20px;
 	}
 }
 

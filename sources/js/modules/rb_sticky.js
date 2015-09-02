@@ -19,6 +19,7 @@
 			this._super(element);
 
 			this.isFixed = false;
+			this.isScrollFixed = false;
 
 			this.updateLayout = rb.rAF(this.updateLayout, true);
 
@@ -126,7 +127,7 @@
 			this.scroll = this.scrollingElement.scrollTop;
 			var shouldFix =  this.scroll >= this.minFixedPos && this.scroll <= this.maxFixedPos;
 			var shouldScroll = shouldFix && (this.scroll >= this.minScrollPos && this.scroll <= this.maxScrollPos);
-			if(shouldFix != this.isFixed || shouldScroll){
+			if(shouldFix != this.isFixed || shouldScroll || this.isScrollFixed){
 				this.updateLayout(shouldFix, shouldScroll);
 			}
 		},
@@ -139,6 +140,7 @@
 				}
 
 				if(shouldScroll){
+					this.isScrollFixed = true;
 					offset = this.offset * -1;
 					if(this.posProp == 'top'){
 						offset += (this.minScrollPos - this.scroll);
@@ -146,6 +148,9 @@
 						offset -= this.maxScrollPos - this.scroll;
 					}
 					this.element.style[this.posProp] = offset +'px';
+				} else if(this.isScrollFixed){
+					this.isScrollFixed = false;
+					this.element.style[this.posProp] = (this.offset * -1) +'px';
 				}
 			} else if(this.isFixed) {
 				this._unfix();
@@ -154,6 +159,7 @@
 		_unfix: function(){
 			if(!this.isFixed){return;}
 			this.isFixed = false;
+			this.isScrollFixed = false;
 			this.element.classList.remove('is-fixed');
 			this.detachClone();
 			this.element.style.position = '';
@@ -164,6 +170,7 @@
 			if(this.isFixed){return;}
 
 			this.isFixed = true;
+			this.isScrollFixed = false;
 			this.attachClone();
 			this.element.classList.add('is-fixed');
 			this.element.style.position = 'fixed';
