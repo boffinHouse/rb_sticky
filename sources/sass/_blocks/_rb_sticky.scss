@@ -1,0 +1,53 @@
+/*********************************************************
+
+rb-sticky
+----------------------------------------------------------
+
+**********************************************************/
+$stickyJSCFG: (
+	watchCSS: false,
+	container: 'positionedParent', // false || 'parent' || 'positionedParent' || '.selector'
+	disabled: false,
+	topOffset: false, //false are number: you can also use css top
+	bottomOffset: false, //false are number: you can also use css bottom
+);
+
+.rb-sticky {
+
+
+	@if function-exists(rbToJSON) {
+		@include exportToJS($stickyJSCFG);
+	}
+
+	/* important set properties shouldn't be changed, use an outer or inner element to apply does styles */
+
+	float: none !important;
+	left: auto !important;
+	right: auto !important;
+	border: none !important;
+	padding: 0 !important;
+	position: static;
+
+	top: 0;
+	bottom: auto;
+	margin-left: 0;
+	margin-right: 0;
+
+	background: #333;
+	height: 100px;
+
+	&.is-fixed {
+		position: fixed !important;
+	}
+
+	&.is-top-15 {
+		top: 15px;
+	}
+
+	&.is-bottom-15 {
+		top: auto;
+		bottom: 15px;
+		margin-bottom: 20px;
+	}
+}
+
