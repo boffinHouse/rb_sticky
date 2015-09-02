@@ -60,9 +60,12 @@
 
 			if(options.container){
 				this.container = this.element[options.container] || this.element[isContainerAncestor[options.container]] || this.$element.closest(options.container).get(0);
-
-				this.containerStyles = rb.getStyles(this.container);
-				this.isContainerScroll = !!isContainerScroll[$.css(this.container, 'overflowY', false, this.containerStyles) || $.css(this.container, 'overflow', false, this.containerStyles)];
+				if(this.container == document.body || this.container == docElem){
+					this.container = null;
+				} else {
+					this.isContainerScroll = !!isContainerScroll[$.css(this.container, 'overflowY', false, this.containerStyles) || $.css(this.container, 'overflow', false, this.containerStyles)];
+					this.containerStyles = rb.getStyles(this.container);
+				}
 			}
 
 			if(this.isContainerScroll){
@@ -83,9 +86,9 @@
 			this._getElements();
 
 			this.minFixedPos = -1;
-			this.minScrollPos = this.minFixedPos;
 			this.maxFixedPos = Number.MAX_VALUE;
-			this.maxScrollPos = this.maxFixedPos;
+			this.minScrollPos = this.maxFixedPos;
+			this.maxScrollPos = this.minFixedPos;
 
 			this.scroll = this.scrollingElement.scrollTop;
 			viewport = docElem.clientHeight;

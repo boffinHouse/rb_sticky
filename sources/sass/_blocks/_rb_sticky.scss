@@ -6,7 +6,7 @@ rb-sticky
 **********************************************************/
 $stickyJSCFG: (
 	watchCSS: false,
-	container: 'positionedParent', // false || 'parent' || 'positionedParent' || '.selector'
+	container: 'positionedParent', // false || 'parent' || 'positionedParent'/'offsetParent' || '.selector'
 	disabled: false,
 	topOffset: false, //false or number: you can also use css top (if static positioned)
 	bottomOffset: false, //false or number: you can also use css bottom (if static positioned)
@@ -16,7 +16,7 @@ $stickyJSCFG: (
 
 
 	@if function-exists(rbToJSON) {
-		@include exportToJS($stickyJSCFG);
+		//@include exportToJS($stickyJSCFG);
 	}
 
 	/* important set properties shouldn't be changed, use an outer or inner element to apply does styles */
