@@ -23,6 +23,7 @@
 			bottomOffset: false,
 			progress: 0,
 			childSel: '.sticky-element',
+			setWidth: true,
 		},
 
 		init: function(element){
@@ -45,12 +46,8 @@
 			this._getElements();
 			this.calculateLayout();
 		},
-		setupChilds: function(){
-
-		},
-		updateChilds: function(){
-
-		},
+		setupChilds: function(){},
+		updateChilds: function(){},
 		_getElements: function(){
 			var offsetName;
 
@@ -113,9 +110,14 @@
 			this.lastCheck = Date.now();
 
 			box = (this.isFixed ? this.clone : this.element).getBoundingClientRect();
-			elemOffset = box[this.posProp] + this.scroll;
 
 			if(!box.right && !box.bottom && !box.top && !box.left){return;}
+
+			elemOffset = box[this.posProp] + this.scroll;
+
+			if(this.options.setWidth){
+				this.elemWidth = (this.isFixed ? this.clone : this.element).offsetWidth;
+			}
 
 			if(this.posProp == 'top'){
 				this.minFixedPos = elemOffset + this.offset;
@@ -156,7 +158,7 @@
 			this.checkPosition();
 		},
 		checkPosition: function(){
-			var shouldFix, shouldScroll, progress, wasProgress;
+			var shouldFix, shouldScroll, shouldWidth, progress, wasProgress;
 			this.scroll = this.scrollingElement.scrollTop;
 
 			if(Date.now() - this.lastCheck > this.checkTime){
@@ -167,8 +169,14 @@
 			shouldFix =  this.scroll >= this.minFixedPos && this.scroll <= this.maxFixedPos;
 			shouldScroll = shouldFix && (this.scroll >= this.minScrollPos && this.scroll <= this.maxScrollPos);
 
-			if(shouldFix != this.isFixed || shouldScroll || this.isScrollFixed){
-				this.updateLayout(shouldFix, shouldScroll);
+			if(shouldFix && !this.isFixed && this.options.setWidth){
+				this.elemWidth = this.element.offsetWidth;
+			}
+
+			shouldWidth = shouldFix && this.isFixed && this.options.setWidth && this.element.offsetWidth != this.elemWidth;
+
+			if(shouldFix != this.isFixed || shouldScroll || this.isScrollFixed || shouldWidth){
+				this.updateLayout(shouldFix, shouldScroll, shouldWidth);
 			}
 
 			if(
@@ -195,9 +203,12 @@
 				}
 			}
 		},
-		updateLayout: function(shouldFix, shouldScroll){
+		updateLayout: function(shouldFix, shouldScroll, shouldWidth){
 			var offset;
 
+			if(shouldWidth){
+				this.element.style.width = this.elemWidth + 'px';
+			}
 			if(shouldFix){
 				if(!this.isFixed){
 					this._fix();
@@ -232,13 +243,16 @@
 		},
 		_fix: function(){
 			if(this.isFixed){return;}
-			var elemWidth = this.element.offsetWidth;
 			this.isFixed = true;
 			this.isScrollFixed = false;
 			this.attachClone();
 			this.element.classList.add('is-fixed');
 			this.element.style.position = 'fixed';
-			this.element.style.width = elemWidth +'px';
+
+			if(this.options.setWidth){
+				this.element.style.width = this.elemWidth +'px';
+			}
+
 			this.element.style[this.posProp] = (this.offset * -1) +'px';
 		},
 		attachClone: function(){
@@ -250,14 +264,15 @@
 				this.$clone
 					.css({visibility: 'hidden'})
 					.removeClass(rb.life.initClass)
-					.attr('data-module', '')
+					.addClass('sticky-clone')
+					.attr({
+						'data-module': '',
+						'aria-hidden': 'true',
+					})
 				;
 			}
 
-			this.$clone.css({
-				width: this.element.offsetWidth + 'px',
-				height: this.element.offsetHeight + 'px',
-			});
+			this.$clone.css({height: this.element.offsetHeight + 'px',});
 			this.$element.after(this.clone);
 		},
 		detachClone: function(){
