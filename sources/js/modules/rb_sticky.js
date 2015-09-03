@@ -6,13 +6,23 @@
 	var isContainerScroll = {scroll: 1, auto: 1};
 	var isContainerAncestor = {parent: 'parentNode', positionedParent: 'offsetParent'};
 	var docElem = document.documentElement;
-
-	rb.life.Widget.extend('sticky', {
+	var extend = function(){
+		var Scrolly = rb.life._behaviors.scrolly;
+		if(Scrolly){
+			Sticky.prototype.setupChilds = Scrolly.prototype.setupChilds;
+			Sticky.prototype.updateChilds = Scrolly.prototype.updateChilds;
+			Sticky.prototype.getCssValue = Scrolly.prototype.getCssValue;
+			extend = rb.$.noop;
+		}
+	};
+	var Sticky = rb.life.Widget.extend('sticky', {
 		defaults: {
 			container: 'positionedParent', // false || 'parent' || 'positionedParent' || '.selector'
 			disabled: false,
 			topOffset: false,
 			bottomOffset: false,
+			progress: 0,
+			childSel: '.sticky-element',
 		},
 
 		init: function(element){
@@ -20,12 +30,26 @@
 
 			this.isFixed = false;
 			this.isScrollFixed = false;
+			this.checkTime = 666 + (666 * Math.random());
 
+			this.progress = -1;
+			this.onprogress = $.Callbacks();
+
+			this.updateChilds = rb.rAF(this.updateChilds, true);
+			this.onprogress.fireWith = rb.rAF(this.onprogress.fireWith);
 			this.updateLayout = rb.rAF(this.updateLayout, true);
 
 			this.calculateLayout = this.calculateLayout.bind(this);
 			this.checkPosition = this.checkPosition.bind(this);
+
+			this._getElements();
 			this.calculateLayout();
+		},
+		setupChilds: function(){
+
+		},
+		updateChilds: function(){
+
 		},
 		_getElements: function(){
 			var offsetName;
@@ -46,8 +70,6 @@
 
 			this.offset = 0;
 			this.nativeOffset = 0;
-
-			this.elemWidth = this.element.offsetWidth;
 
 			if(this.isStatic){
 				this.nativeOffset = $.css(this.element, this.posProp, true, this.elemStyles) || 0;
@@ -79,27 +101,34 @@
 		calculateLayout: function(){
 			var box, elemOffset, containerBox, containerOffset, viewport;
 
-			if(this.isFixed){
-				this._unfix();
-			}
-
-			this._getElements();
-
 			this.minFixedPos = -1;
 			this.maxFixedPos = Number.MAX_VALUE;
 			this.minScrollPos = this.maxFixedPos;
 			this.maxScrollPos = this.minFixedPos;
 
 			this.scroll = this.scrollingElement.scrollTop;
+
 			viewport = docElem.clientHeight;
 
-			box = this.element.getBoundingClientRect();
+			this.lastCheck = Date.now();
+
+			box = (this.isFixed ? this.clone : this.element).getBoundingClientRect();
 			elemOffset = box[this.posProp] + this.scroll;
+
+			if(!box.right && !box.bottom && !box.top && !box.left){return;}
 
 			if(this.posProp == 'top'){
 				this.minFixedPos = elemOffset + this.offset;
+				if(this.options.progress){
+					this.minProgressPos = this.minFixedPos;
+					this.maxProgressPos = this.minFixedPos + this.options.progress;
+				}
 			} else {
 				this.maxFixedPos = elemOffset - this.offset - viewport;
+				if(this.options.progress){
+					this.minProgressPos = this.maxFixedPos - this.options.progress;
+					this.maxProgressPos = this.maxFixedPos;
+				}
 			}
 
 			if(this.container){
@@ -127,11 +156,43 @@
 			this.checkPosition();
 		},
 		checkPosition: function(){
+			var shouldFix, shouldScroll, progress, wasProgress;
 			this.scroll = this.scrollingElement.scrollTop;
-			var shouldFix =  this.scroll >= this.minFixedPos && this.scroll <= this.maxFixedPos;
-			var shouldScroll = shouldFix && (this.scroll >= this.minScrollPos && this.scroll <= this.maxScrollPos);
+
+			if(Date.now() - this.lastCheck > this.checkTime){
+				this.calculateLayout();
+				return;
+			}
+
+			shouldFix =  this.scroll >= this.minFixedPos && this.scroll <= this.maxFixedPos;
+			shouldScroll = shouldFix && (this.scroll >= this.minScrollPos && this.scroll <= this.maxScrollPos);
+
 			if(shouldFix != this.isFixed || shouldScroll || this.isScrollFixed){
 				this.updateLayout(shouldFix, shouldScroll);
+			}
+
+			if(
+				this.options.progress &&
+				(
+					(shouldFix && this.scroll >= this.minProgressPos && this.scroll <= this.maxProgressPos) ||
+					(this.progress !== 0 && this.progress !== 1)
+				)
+			){
+				progress = 1 - Math.max(Math.min((this.scroll - this.minProgressPos) / (this.maxProgressPos - this.minProgressPos), 1), 0);
+				wasProgress = this.progress;
+
+				if(!shouldFix && wasProgress == -1){return;}
+
+				if(wasProgress != progress){
+					this.progress = progress;
+
+					if(!this.childs || !this.childAnimations){
+						this.setupChilds();
+					}
+
+					this.updateChilds();
+					this.onprogress.fireWith(this, [progress]);
+				}
 			}
 		},
 		updateLayout: function(shouldFix, shouldScroll){
@@ -171,26 +232,37 @@
 		},
 		_fix: function(){
 			if(this.isFixed){return;}
-
+			var elemWidth = this.element.offsetWidth;
 			this.isFixed = true;
 			this.isScrollFixed = false;
 			this.attachClone();
 			this.element.classList.add('is-fixed');
 			this.element.style.position = 'fixed';
-			this.element.style.width = this.elemWidth +'px';
+			this.element.style.width = elemWidth +'px';
 			this.element.style[this.posProp] = (this.offset * -1) +'px';
 		},
 		attachClone: function(){
 			if(!this.$clone){
-				this.$clone = $(this.element.cloneNode());
+				this.clone = this.element.cloneNode();
+				this.$clone = $(this.clone);
 
-				this.$clone.css({visibility: 'hidden'}).removeClass('js-rb-life');
+				//ToDo: remove life.initClass
+				this.$clone
+					.css({visibility: 'hidden'})
+					.removeClass(rb.life.initClass)
+					.attr('data-module', '')
+				;
 			}
-			this.$element.after(this.$clone.get(0));
+
+			this.$clone.css({
+				width: this.element.offsetWidth + 'px',
+				height: this.element.offsetHeight + 'px',
+			});
+			this.$element.after(this.clone);
 		},
 		detachClone: function(){
 			if(this.$clone){
-				this.$clone.remove();
+				this.$clone.detach();
 			}
 		},
 		onceAttached: function(){
@@ -202,10 +274,16 @@
 		attached: function(){
 			this.$scrollEventElem.on('scroll', this.checkPosition);
 			rb.resize.on(this.calculateLayout);
+			clearInterval(this.layoutInterval);
+			this.layoutInterval = setInterval(this.calculateLayout, Math.round((999 * Math.random()) + 9999));
 		},
 		detached: function(){
 			this.$scrollEventElem.off('scroll', this.checkPosition);
 			rb.resize.off(this.calculateLayout);
+			clearInterval(this.layoutInterval);
 		},
 	});
+
+	extend();
+	setTimeout(extend);
 })();

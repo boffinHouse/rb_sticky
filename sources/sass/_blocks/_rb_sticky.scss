@@ -34,6 +34,7 @@ $stickyJSCFG: (
 	margin-right: 0;
 
 	background: #333;
+	color: #f1f1f1;
 	height: 100px;
 
 	&.is-fixed {
@@ -47,6 +48,23 @@ $stickyJSCFG: (
 	&.is-bottom-15 {
 		top: auto;
 		bottom: 15px;
+	}
+
+	&[data-progress] {
+
+		height: auto;
+
+		.sticky-element {
+			font-size: 18px;
+			min-height: 100px;
+
+			@if function-exists(rbToJSON) {
+				@include exportToJS((
+					fontSize: 12,
+					minHeight: 50,
+				));
+			}
+		}
 	}
 }
 
