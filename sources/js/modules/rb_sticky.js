@@ -169,8 +169,11 @@
 			shouldFix =  this.scroll >= this.minFixedPos && this.scroll <= this.maxFixedPos;
 			shouldScroll = shouldFix && (this.scroll >= this.minScrollPos && this.scroll <= this.maxScrollPos);
 
-			if(shouldFix && !this.isFixed && this.options.setWidth){
-				this.elemWidth = this.element.offsetWidth;
+			if(shouldFix && !this.isFixed){
+				this.elemHeight = this.element.offsetHeight;
+				if(this.options.setWidth){
+					this.elemWidth = this.element.offsetWidth;
+				}
 			}
 
 			shouldWidth = shouldFix && this.isFixed && this.options.setWidth && this.element.offsetWidth != this.elemWidth;
@@ -209,6 +212,7 @@
 			if(shouldWidth){
 				this.element.style.width = this.elemWidth + 'px';
 			}
+
 			if(shouldFix){
 				if(!this.isFixed){
 					this._fix();
@@ -217,16 +221,19 @@
 				if(shouldScroll){
 					this.isScrollFixed = true;
 					offset = this.offset * -1;
+
 					if(this.posProp == 'top'){
 						offset += (this.minScrollPos - this.scroll);
 					} else {
 						offset -= this.maxScrollPos - this.scroll;
 					}
+
 					this.element.style[this.posProp] = offset +'px';
 				} else if(this.isScrollFixed){
 					this.isScrollFixed = false;
 					this.element.style[this.posProp] = (this.offset * -1) +'px';
 				}
+
 			} else if(this.isFixed) {
 				this._unfix();
 			}
@@ -272,7 +279,7 @@
 				;
 			}
 
-			this.$clone.css({height: this.element.offsetHeight + 'px',});
+			this.$clone.css({height: this.elemHeight + 'px',});
 			this.$element.after(this.clone);
 		},
 		detachClone: function(){

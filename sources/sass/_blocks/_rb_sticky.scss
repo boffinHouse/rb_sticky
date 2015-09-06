@@ -10,14 +10,15 @@ $stickyJSCFG: (
 	disabled: false,
 	topOffset: false, //false or number: you can also use css top (if static positioned)
 	bottomOffset: false, //false or number: you can also use css bottom (if static positioned)
+	progress: 0,
+	childSel: '.sticky-element',
+	setWidth: true,
 );
 
 .rb-sticky {
 
 
-	@if function-exists(rbToJSON) {
-		//@include exportToJS($stickyJSCFG);
-	}
+	//@include exportToJS($stickyJSCFG);
 
 	/* important set properties shouldn't be changed, use an outer or inner element to apply does styles */
 
@@ -50,7 +51,14 @@ $stickyJSCFG: (
 		bottom: 15px;
 	}
 
-	&[data-progress] {
+	&.progress-showcase {
+
+		//@include exportToJS(map-merge($stickyJSCFG, (
+		//	progress: 100
+		//)));
+		@include exportToJS((
+			progress: 100
+		));
 
 		height: auto;
 
@@ -58,12 +66,11 @@ $stickyJSCFG: (
 			font-size: 18px;
 			min-height: 100px;
 
-			@if function-exists(rbToJSON) {
-				@include exportToJS((
-					fontSize: 12,
-					minHeight: 50,
-				));
-			}
+			@include exportToJS((
+				fontSize: 12,
+				minHeight: 50,
+			));
+
 		}
 	}
 }
