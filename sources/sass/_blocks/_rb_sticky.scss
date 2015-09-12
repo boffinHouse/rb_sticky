@@ -6,13 +6,15 @@ rb-sticky
 **********************************************************/
 $stickyJSCFG: (
 	watchCSS: false,
-	container: 'positionedParent', // false || 'parent' || 'positionedParent'/'offsetParent' || '.selector'
-	disabled: false,
-	topOffset: false, //false or number: you can also use css top (if static positioned)
-	bottomOffset: false, //false or number: you can also use css bottom (if static positioned)
+	container: 'positionedParent', // false || 'parent' || 'positionedParent' || '.selector'
+	switchedOff: false,
+	topOffset: false,
+	bottomOffset: false,
 	progress: 0,
 	childSel: '.sticky-element',
 	setWidth: true,
+	restSwitchedOff: true,
+	childStyle: '',
 );
 
 .rb-sticky {
@@ -28,6 +30,7 @@ $stickyJSCFG: (
 	border: none !important;
 	padding: 0 !important;
 	position: static;
+	backface-visibility: hidden;
 
 	top: 0;
 	bottom: auto;

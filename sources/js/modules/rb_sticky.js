@@ -18,12 +18,14 @@
 	var Sticky = rb.life.Widget.extend('sticky', {
 		defaults: {
 			container: 'positionedParent', // false || 'parent' || 'positionedParent' || '.selector'
-			disabled: false,
+			switchedOff: false,
 			topOffset: false,
 			bottomOffset: false,
 			progress: 0,
 			childSel: '.sticky-element',
 			setWidth: true,
+			restSwitchedOff: true,
+			childStyle: '',
 		},
 
 		init: function(element){
@@ -45,6 +47,25 @@
 
 			this._getElements();
 			this.calculateLayout();
+		},
+		setOption: function(name, value){
+			this._super(name, value);
+
+			if(name == 'switchedOff' || name == 'restSwitchedOff' && this.options.switchedOff && this.options.restSwitchedOff){
+				this._unfix();
+				this.updateChilds(true);
+				this.progress = -1;
+			} else if(name == 'bottomOffset' || name == 'topOffset' || (name == 'switchedOff' && !value)){
+				this._unfix();
+				this.element.style.top = '';
+				this.element.style.bottom = '';
+				this._getElements();
+				this.calculateLayout();
+			} else if(name == 'childStyle'){
+				this.updateChilds._rbUnrafedFn(true);
+				this.progress = -1;
+				this.calculateLayout();
+			}
 		},
 		setupChilds: function(){},
 		updateChilds: function(){},
@@ -158,7 +179,12 @@
 			this.checkPosition();
 		},
 		checkPosition: function(){
+			if(this.options.switchedOff){
+				return;
+			}
+
 			var shouldFix, shouldScroll, shouldWidth, progress, wasProgress;
+
 			this.scroll = this.scrollingElement.scrollTop;
 
 			if(Date.now() - this.lastCheck > this.checkTime){
@@ -208,6 +234,9 @@
 		},
 		updateLayout: function(shouldFix, shouldScroll, shouldWidth){
 			var offset;
+			if(this.options.switchedOff){
+				return;
+			}
 
 			if(shouldWidth){
 				this.element.style.width = this.elemWidth + 'px';
@@ -289,9 +318,6 @@
 		},
 		onceAttached: function(){
 
-		},
-		setOption: function(name, value){
-			this._super(name, value);
 		},
 		attached: function(){
 			this.$scrollEventElem.on('scroll', this.checkPosition);
