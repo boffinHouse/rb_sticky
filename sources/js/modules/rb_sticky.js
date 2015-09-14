@@ -9,9 +9,9 @@
 	var extend = function(){
 		var Scrolly = rb.life._behaviors.scrolly;
 		if(Scrolly){
-			Sticky.prototype.setupChilds = Scrolly.prototype.setupChilds;
-			Sticky.prototype.updateChilds = Scrolly.prototype.updateChilds;
-			Sticky.prototype.getCssValue = Scrolly.prototype.getCssValue;
+			['setupChilds', 'updateChilds', 'getCssValue', 'checkChildReflow'].forEach(function(name){
+				Sticky.prototype[name] = Scrolly.prototype[name] || Sticky.prototype[name];
+			});
 			extend = rb.$.noop;
 		}
 	};
@@ -45,6 +45,11 @@
 			this.calculateLayout = this.calculateLayout.bind(this);
 			this.checkPosition = this.checkPosition.bind(this);
 
+			this.reflow = rb.throttle(function(){
+				this.checkChildReflow();
+				this.calculateLayout();
+			}, {that: this});
+
 			this._getElements();
 			this.calculateLayout();
 		},
@@ -67,8 +72,9 @@
 				this.calculateLayout();
 			}
 		},
-		setupChilds: function(){},
-		updateChilds: function(){},
+		setupChilds: $.noop,
+		updateChilds: $.noop,
+		checkChildReflow: $.noop,
 		_getElements: function(){
 			var offsetName;
 
@@ -327,13 +333,13 @@
 		},
 		attached: function(){
 			this.$scrollEventElem.on('scroll', this.checkPosition);
-			rb.resize.on(this.calculateLayout);
+			rb.resize.on(this.reflow);
 			clearInterval(this.layoutInterval);
-			this.layoutInterval = setInterval(this.calculateLayout, Math.round((999 * Math.random()) + 9999));
+			this.layoutInterval = setInterval(this.reflow, Math.round((999 * Math.random()) + 9999));
 		},
 		detached: function(){
 			this.$scrollEventElem.off('scroll', this.checkPosition);
-			rb.resize.off(this.calculateLayout);
+			rb.resize.off(this.reflow);
 			clearInterval(this.layoutInterval);
 		},
 	});
