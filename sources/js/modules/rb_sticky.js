@@ -233,7 +233,7 @@
 			}
 		},
 		updateLayout: function(shouldFix, shouldScroll, shouldWidth){
-			var offset;
+			var offset, trigger;
 			if(this.options.switchedOff){
 				return;
 			}
@@ -245,6 +245,7 @@
 			if(shouldFix){
 				if(!this.isFixed){
 					this._fix();
+					trigger = true;
 				}
 
 				if(shouldScroll){
@@ -265,6 +266,11 @@
 
 			} else if(this.isFixed) {
 				this._unfix();
+				trigger = true;
+			}
+
+			if(trigger){
+				this._trigger();
 			}
 		},
 		_unfix: function(){
