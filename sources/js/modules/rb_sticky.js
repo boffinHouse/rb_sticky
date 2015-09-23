@@ -22,7 +22,7 @@
 			topOffset: false,
 			bottomOffset: false,
 			progress: 0,
-			childSel: '.sticky-element',
+			childSel: 'find(.sticky-element)',
 			setWidth: true,
 			restSwitchedOff: true,
 			childStyle: '',
