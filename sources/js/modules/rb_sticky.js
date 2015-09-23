@@ -36,11 +36,14 @@
 			this.checkTime = 666 + (666 * Math.random());
 
 			this.progress = -1;
+
+			this.isProgressDone = false;
 			this.onprogress = $.Callbacks();
 
 			this.updateChilds = rb.rAF(this.updateChilds, true);
 			this.onprogress.fireWith = rb.rAF(this.onprogress.fireWith);
 			this.updateLayout = rb.rAF(this.updateLayout, true);
+			this._setProgressClass = rb.rAF(this._setProgressClass, true);
 
 			this.calculateLayout = this.calculateLayout.bind(this);
 			this.checkPosition = this.checkPosition.bind(this);
@@ -233,10 +236,23 @@
 						this.setupChilds();
 					}
 
+					if(progress == 1){
+						if(!this.isProgressDone){
+							this.isProgressDone = true;
+							this._setProgressClass();
+						}
+					} else if(this.isProgressDone){
+						this.isProgressDone = false;
+						this._setProgressClass();
+					}
+
 					this.updateChilds();
 					this.onprogress.fireWith(this, [progress]);
 				}
 			}
+		},
+		_setProgressClass: function(){
+			this.element.classList[this.isProgressDone ? 'add' : 'remove']('is-fixed-progressed')
 		},
 		updateLayout: function(shouldFix, shouldScroll, shouldWidth){
 			var offset, trigger;
