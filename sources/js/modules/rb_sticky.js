@@ -6,16 +6,8 @@
 	var isContainerScroll = {scroll: 1, auto: 1};
 	var isContainerAncestor = {parent: 'parentNode', positionedParent: 'offsetParent'};
 	var docElem = document.documentElement;
-	var extend = function(){
-		var Scrolly = rb.life._behaviors.scrolly;
-		if(Scrolly){
-			['setupChilds', 'updateChilds', 'getCssValue', 'checkChildReflow'].forEach(function(name){
-				Sticky.prototype[name] = Scrolly.prototype[name] || Sticky.prototype[name];
-			});
-			extend = rb.$.noop;
-		}
-	};
-	var Sticky = rb.life.Widget.extend('sticky', {
+
+	var Sticky = (rb.widgets._childfx || rb.Widget).extend('sticky', {
 		defaults: {
 			container: 'positionedParent', // false || 'parent' || 'positionedParent' || '.selector'
 			switchedOff: false,
@@ -25,7 +17,6 @@
 			childSel: 'find(.sticky-element)',
 			setWidth: true,
 			restSwitchedOff: true,
-			childStyle: '',
 		},
 
 		init: function(element){
@@ -40,7 +31,7 @@
 			this.isProgressDone = false;
 			this.onprogress = $.Callbacks();
 
-			this.updateChilds = rb.rAF(this.updateChilds, true);
+			this.updateChilds = rb.rAF(this.updateChilds || $.noop, true);
 			this.onprogress.fireWith = rb.rAF(this.onprogress.fireWith);
 			this.updateLayout = rb.rAF(this.updateLayout, true);
 			this._setProgressClass = rb.rAF(this._setProgressClass, true);
@@ -49,7 +40,9 @@
 			this.checkPosition = this.checkPosition.bind(this);
 
 			this.reflow = rb.throttle(function(){
-				this.checkChildReflow();
+				if(this.checkChildReflow){
+					this.checkChildReflow();
+				}
 				this.calculateLayout();
 			}, {that: this});
 
@@ -75,9 +68,6 @@
 				this.calculateLayout();
 			}
 		},
-		setupChilds: $.noop,
-		updateChilds: $.noop,
-		checkChildReflow: $.noop,
 		_getElements: function(){
 			var offsetName;
 
@@ -232,10 +222,6 @@
 				if(wasProgress != progress){
 					this.progress = progress;
 
-					if(!this.childs || !this.childAnimations){
-						this.setupChilds();
-					}
-
 					if(progress == 1){
 						if(!this.isProgressDone){
 							this.isProgressDone = true;
@@ -252,7 +238,7 @@
 			}
 		},
 		_setProgressClass: function(){
-			this.element.classList[this.isProgressDone ? 'add' : 'remove']('is-fixed-progressed')
+			this.element.classList[this.isProgressDone ? 'add' : 'remove']('is-fixed-progressed');
 		},
 		updateLayout: function(shouldFix, shouldScroll, shouldWidth){
 			var offset, trigger;
@@ -359,7 +345,4 @@
 			clearInterval(this.layoutInterval);
 		},
 	});
-
-	extend();
-	setTimeout(extend);
 })();

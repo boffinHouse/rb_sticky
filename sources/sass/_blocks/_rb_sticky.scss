@@ -64,6 +64,11 @@ $stickyJSCFG: (
 		));
 
 		height: auto;
+		transition: 300ms background-color;
+
+		&.is-fixed-progressed {
+			background: #600;
+		}
 
 		.sticky-element {
 			font-size: 18px;
