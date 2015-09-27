@@ -5,7 +5,7 @@ rb-sticky
 
 **********************************************************/
 $stickyJSCFG: (
-	watchCSS: false,
+	watchCss: false,
 	container: 'positionedParent', // false || 'parent' || 'positionedParent' || '.selector'
 	switchedOff: false,
 	topOffset: false,
@@ -18,8 +18,6 @@ $stickyJSCFG: (
 );
 
 .rb-sticky {
-
-
 	//@include exportToJS($stickyJSCFG);
 
 	/* important set properties shouldn't be changed, use an outer or inner element to apply does styles */
