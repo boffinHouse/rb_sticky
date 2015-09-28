@@ -31,10 +31,10 @@
 			this.isProgressDone = false;
 			this.onprogress = $.Callbacks();
 
-			this.updateChilds = rb.rAF(this.updateChilds || $.noop, true);
+			this.updateChilds = rb.rAF(this.updateChilds || $.noop);
 			this.onprogress.fireWith = rb.rAF(this.onprogress.fireWith);
-			this.updateLayout = rb.rAF(this.updateLayout, true);
-			this._setProgressClass = rb.rAF(this._setProgressClass, true);
+			this.updateLayout = rb.rAF(this.updateLayout);
+			this._setProgressClass = rb.rAF(this._setProgressClass);
 
 			this.calculateLayout = this.calculateLayout.bind(this);
 			this.checkPosition = this.checkPosition.bind(this);
