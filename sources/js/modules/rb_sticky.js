@@ -7,7 +7,7 @@
 	var isContainerAncestor = {parent: 'parentNode', positionedParent: 'offsetParent'};
 	var docElem = document.documentElement;
 
-	var Sticky = (rb.widgets._childfx || rb.Widget).extend('sticky', {
+	var Sticky = (rb.components._childfx || rb.Component).extend('sticky', {
 		defaults: {
 			container: 'positionedParent', // false || 'parent' || 'positionedParent' || '.selector'
 			switchedOff: false,
