@@ -5,15 +5,14 @@ rb-sticky
 
 **********************************************************/
 $stickyJSCFG: (
-	watchCss: false,
 	container: 'positionedParent', // false || 'parent' || 'positionedParent' || '.selector'
 	switchedOff: false,
 	topOffset: false,
 	bottomOffset: false,
 	progress: 0,
-	childSel: '.sticky-element',
+	childSel: 'find(.sticky-element)',
 	setWidth: true,
-	restSwitchedOff: true,
+	resetSwitchedOff: true,
 	childStyle: '',
 );
 

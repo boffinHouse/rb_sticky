@@ -3,6 +3,7 @@
 
 	module.exports = function (grunt) {
 		grunt.task.loadNpmTasks('grunt-sass');
+		grunt.task.loadNpmTasks('grunt-jsdoc');
 		grunt.task.loadNpmTasks('grunt-contrib-copy');
 		grunt.task.loadNpmTasks('grunt-contrib-clean');
 		grunt.task.loadNpmTasks('grunt-autoprefixer');
@@ -63,6 +64,16 @@
 				js: {
 					files: {
 						src: ['sources/js/**/*.js', 'tests/**/*.js']
+					}
+				}
+			},
+			jsdoc: {
+				dist : {
+					src: ['sources/js/**/*.js'],
+					options: {
+						destination: 'doc',
+						template : 'node_modules/ink-docstrap/template',
+						configure : 'node_modules/ink-docstrap/template/jsdoc.conf.json',
 					}
 				}
 			},
