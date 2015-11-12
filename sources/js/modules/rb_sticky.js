@@ -12,17 +12,18 @@
 		{
 			/**
 			 * @prop {{}} defaults
-			 * @prop {String|Boolean} container="positionedParent" The container element, that is used to calculate the bounds in wich the element should be sticky to the viewport. If `false` its always sticky. Possible values: `false`, `"parent"`(direct parent element), `"positionedParent"`, `".closest-selector"`.
+			 * @prop {String|Boolean} container=".is-sticky-parent" The container element, that is used to calculate the bounds in wich the element should be sticky to the viewport. If `false` its always sticky. Possible values: `false`, `"parent"`(direct parent element), `"positionedParent"`, `".closest-selector"`.
 			 * @prop {Boolean|Number} topOffset=false If a number it sets sticky offset to the number. If neither the `topOffset` nor `bottomOffset` is set. The CSS top/bottom properties are tested. At least one of these have to have a numeric value.
 			 * @prop {Boolean|Number} bottomOffset=false If a number it sets sticky offset to the number. If neither the `topOffset` nor `bottomOffset` is set. The CSS top/bottom properties are tested. At least one of these have to have a numeric value.
 			 * @prop {Number} progress=0 Defines the distance in pixel a child animation should be added after an animation should be added.
-			 * @prop {''} childSel="find(.sticky-element)" The elements, which should be animated
+			 * @prop {''} childSel="find(.sticky-element)" The elements, which should be animated.
 			 * @prop {Boolean} setWidth=true Whether the width of the sticky element should be set, while it is stuck.
-			 * @prop {Boolean} switchedOff=false Turns off the stickyness. (to be used in responsive context)
+			 * @prop {Boolean} switchedOff=false Turns off the stickyness. (to be used in responsive context).
 			 * @prop {Boolean} resetSwitchedOff=true Whether a switchedOff change fully resets the styles.
+			 * @prop {Boolean} autoThrottle=false Tries to throttle layout reads if current scroll position is far away from a changing point.
 			 */
 			defaults: {
-				container: 'positionedParent', // false || 'parent' || 'positionedParent' || '.selector'
+				container: '.is-sticky-parent', // false || 'parent' || 'positionedParent' || '.selector'
 				switchedOff: false,
 				topOffset: false,
 				bottomOffset: false,
@@ -30,6 +31,7 @@
 				childSel: 'find(.sticky-element)',
 				setWidth: true,
 				resetSwitchedOff: true,
+				autoThrottle: false,
 			},
 			/**
 			 * @constructs
@@ -81,13 +83,15 @@
 				this.isProgressDone = false;
 				this.onprogress = $.Callbacks();
 
+				this._throttleOptions = {that: this, unthrottle: true};
+
 				this.updateChilds = this.updateChilds || $.noop;
 				this.onprogress.fireWith = rb.rAF(this.onprogress.fireWith);
 				this.updateLayout = rb.rAF(this.updateLayout);
 				this._setProgressClass = rb.rAF(this._setProgressClass);
 
 				this.calculateLayout = this.calculateLayout.bind(this);
-				this.checkPosition = this.checkPosition.bind(this);
+				this.checkPosition = rb.throttle(this.checkPosition, this._throttleOptions);
 
 				this.reflow = rb.throttle(function(){
 					if(this.checkChildReflow){
@@ -98,6 +102,11 @@
 
 				this._getElements();
 				this.calculateLayout();
+			},
+			statics: {
+				filterPos: function(pos){
+					return pos != null && pos > -1 && pos < Number.MAX_VALUE;
+				},
 			},
 			setOption: function(name, value){
 				this._super(name, value);
@@ -112,6 +121,8 @@
 					this.element.style.bottom = '';
 					this._getElements();
 					this.calculateLayout();
+				} else if(name == 'autoThrottle' && !value && !this._throttleOptions.unthrottle){
+					this._throttleOptions.unthrottle =  true;
 				}
 			},
 			_getElements: function(){
@@ -147,7 +158,7 @@
 					this.container = this.element[options.container] || this.element[isContainerAncestor[options.container]] || this.$element.closest(options.container).get(0);
 					if(this.container == document.body || this.container == docElem){
 						this.container = null;
-					} else {
+					} else if(this.container) {
 						this.isContainerScroll = !!isContainerScroll[$.css(this.container, 'overflowY', false, this.containerStyles) || $.css(this.container, 'overflow', false, this.containerStyles)];
 						this.containerStyles = rb.getStyles(this.container);
 					}
@@ -162,7 +173,7 @@
 				}
 			},
 			calculateLayout: function(){
-				var box, elemOffset, containerBox, containerOffset, viewport;
+				var box, elemOffset, containerBox, containerOffset;
 
 				this.minFixedPos = -1;
 				this.maxFixedPos = Number.MAX_VALUE;
@@ -171,7 +182,7 @@
 
 				this.scroll = this.scrollingElement.scrollTop;
 
-				viewport = docElem.clientHeight;
+				this.viewportheight = docElem.clientHeight;
 
 				this.lastCheck = Date.now();
 
@@ -192,7 +203,7 @@
 						this.maxProgressPos = this.minFixedPos + this.options.progress;
 					}
 				} else {
-					this.maxFixedPos = elemOffset - this.offset - viewport;
+					this.maxFixedPos = elemOffset - this.offset - this.viewportheight;
 					if(this.options.progress){
 						this.minProgressPos = this.maxFixedPos - this.options.progress;
 						this.maxProgressPos = this.maxFixedPos;
@@ -221,7 +232,13 @@
 					}
 				}
 
+				this._poses = [this.minScrollPos, this.minFixedPos, this.maxFixedPos, this.maxScrollPos, this.minProgressPos, this.maxProgressPos].filter(Sticky.filterPos);
+
 				this.checkPosition();
+			},
+			_isNearScroll: function(pos){
+				var dif = this.scroll - pos;
+				return dif < 999 + this.viewportheight && dif > -999 - this.viewportheight;
 			},
 			checkPosition: function(){
 				if(this.options.switchedOff){
@@ -239,6 +256,10 @@
 
 				shouldFix =  this.scroll >= this.minFixedPos && this.scroll <= this.maxFixedPos;
 				shouldScroll = shouldFix && (this.scroll >= this.minScrollPos && this.scroll <= this.maxScrollPos);
+
+				if(this.options.autoThrottle){
+					this._throttleOptions.unthrottle =  this._poses.some(this._isNearScroll, this);
+				}
 
 				if(shouldFix && !this.isFixed){
 					this.elemHeight = this.element.offsetHeight;

@@ -5,7 +5,7 @@ rb-sticky
 
 **********************************************************/
 $stickyJSCFG: (
-	container: 'positionedParent', // false || 'parent' || 'positionedParent' || '.selector'
+	container: '.is-sticky-parent', // false || 'parent' || 'positionedParent' || '.selector'
 	switchedOff: false,
 	topOffset: false,
 	bottomOffset: false,
