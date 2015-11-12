@@ -86,9 +86,9 @@
 				this._throttleOptions = {that: this, unthrottle: true};
 
 				this.updateChilds = this.updateChilds || $.noop;
-				this.onprogress.fireWith = rb.rAF(this.onprogress.fireWith);
-				this.updateLayout = rb.rAF(this.updateLayout);
-				this._setProgressClass = rb.rAF(this._setProgressClass);
+				this.onprogress.fireWith = rb.rAF(this.onprogress.fireWith, {throttle: true});
+				this.updateLayout = rb.rAF(this.updateLayout, {throttle: true});
+				this._setProgressClass = rb.rAF(this._setProgressClass, {throttle: true});
 
 				this.calculateLayout = this.calculateLayout.bind(this);
 				this.checkPosition = rb.throttle(this.checkPosition, this._throttleOptions);
