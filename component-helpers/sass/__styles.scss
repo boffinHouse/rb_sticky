@@ -1,0 +1,8 @@
+@import "../../node_modules/rb_layout_defaults/sources/sass/**/*.scss";
+@import "_component";
+
+@include rb_generate_layout_styles($breakpointConfigs);
+
+@import '../../sources/**/*.scss';
+
+

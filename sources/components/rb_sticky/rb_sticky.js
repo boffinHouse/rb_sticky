@@ -20,7 +20,7 @@
 			 * @prop {Boolean} setWidth=true Whether the width of the sticky element should be set, while it is stuck.
 			 * @prop {Boolean} switchedOff=false Turns off the stickyness. (to be used in responsive context).
 			 * @prop {Boolean} resetSwitchedOff=true Whether a switchedOff change fully resets the styles.
-			 * @prop {Boolean} autoThrottle=false Tries to throttle layout reads if current scroll position is far away from a changing point.
+			 * @prop {Boolean} autoThrottle=true Tries to throttle layout reads if current scroll position is far away from a changing point.
 			 */
 			defaults: {
 				container: '.is-sticky-parent', // false || 'parent' || 'positionedParent' || '.selector'
@@ -31,7 +31,7 @@
 				childSel: 'find(.sticky-element)',
 				setWidth: true,
 				resetSwitchedOff: true,
-				autoThrottle: false,
+				autoThrottle: true,
 			},
 			/**
 			 * @constructs
@@ -238,7 +238,7 @@
 			},
 			_isNearScroll: function(pos){
 				var dif = this.scroll - pos;
-				return dif < 999 + this.viewportheight && dif > -999 - this.viewportheight;
+				return dif < 700 + this.viewportheight && dif > -700 - this.viewportheight;
 			},
 			checkPosition: function(){
 				if(this.options.switchedOff){
